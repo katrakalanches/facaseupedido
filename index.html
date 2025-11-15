@@ -63,9 +63,45 @@
     .required::after { content: " *"; color: var(--accent); }
 
     @media (max-width:960px){.layout{grid-template-columns:1fr}.cats{position:relative;top:0}}
+    
+    /* * NOVO ESTILO PARA O MINI AVISO DE ABERTO/FECHADO 
+     * Posicionado no canto superior direito, fixo.
+     */
+    .status-badge{
+      position: fixed;
+      top: 90px; /* Ajustado para ficar abaixo do header fixo (78px) */
+      right: 20px;
+      z-index: 1010;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 14px;
+      text-transform: uppercase;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      transition: all 0.3s ease; /* Transição para um efeito mais suave */
+    }
+    .status-badge.open{
+      background-color: #25D366; /* Verde do WhatsApp / Aberto */
+      color: white;
+    }
+    .status-badge.closed{
+      background-color: #d63031; /* Vermelho / Fechado */
+      color: white;
+    }
+
+    /* Ajuste para telas menores (mobile) */
+    @media (max-width: 600px) {
+        .status-badge {
+            top: 10px; /* Move para o topo em telas pequenas */
+            right: 10px;
+            font-size: 12px;
+            padding: 6px 10px;
+        }
+    }
   </style>
 </head>
 <body>
+  <div id="openStatus" class="status-badge"></div> 
   <header>
     <div class="logo"><img src="480357216_486115011233301_1658224249131644584_n.jpg" alt="Katraka Lanches"></div>
     <div class="brand">
@@ -521,6 +557,40 @@ Forma: ${payment}${trocoInfo}`;
         window.open(`https://wa.me/${PHONE_NUMBER}?text=${text}`, '_blank');
     }
 
+    // LÓGICA DO MINI AVISO ABERTO/FECHADO
+    function checkStatus() {
+        const now = new Date();
+        const hour = now.getHours();
+        
+        // Regra: Aberto de 17:00 a 00:00 (meia-noite), todos os dias.
+        // O JS 'hour' para 00:00 é 0.
+        let isOpen = false;
+
+        // Aberto se a hora for de 17 (5PM) até 23 (11PM) OU se for 0 (meia-noite)
+        if (hour >= 17 || hour === 0) {
+            isOpen = true;
+        }
+
+        const statusElement = document.getElementById('openStatus');
+        
+        if (statusElement) {
+            if (isOpen) {
+                statusElement.innerText = 'ABERTO';
+                statusElement.classList.add('open');
+                statusElement.classList.remove('closed');
+            } else {
+                statusElement.innerText = 'FECHADO';
+                statusElement.classList.add('closed');
+                statusElement.classList.remove('open');
+            }
+        }
+    }
+
+    // Chama a função uma vez ao carregar
+    checkStatus();
+    // Atualiza o status a cada 60 segundos (1 minuto)
+    setInterval(checkStatus, 60000); 
+
     
     document.getElementById('year').innerText = new Date().getFullYear();
 
@@ -534,5 +604,3 @@ Forma: ${payment}${trocoInfo}`;
 </body>
 
 </html>
-
-
