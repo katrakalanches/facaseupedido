@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Katraka Lanches — Cardápio</title>
+  <style>
+    :root{
+      --bg:#0f1724; --accent:#ffcc00; --muted:#9aa4b2; --card:#0b1220; --radius:12px;
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(180deg,#091026 0%, #07101b 100%);color:#e6eef6;-webkit-font-smoothing:antialiased}
+    header{position:sticky;top:0;z-index:1000;background:rgba(15,23,36,0.96);backdrop-filter:blur(6px);display:flex;align-items:center;gap:14px;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,0.04)}
+    .logo img{width:64px;height:64px;border-radius:10px;object-fit:cover}
+    .brand h1{margin:0;color:var(--accent);font-size:20px}
+    .brand p{margin:0;color:var(--muted);font-size:13px}
+    .container{max-width:1200px;margin:14px auto;padding:16px}
+    .cats{position:sticky;top:78px;z-index:900;display:flex;gap:8px;flex-wrap:wrap;background:transparent;padding:8px 0;margin-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.02)}
+    .cat{padding:8px 14px;border-radius:999px;background:rgba(255,255,255,0.02);color:var(--muted);cursor:pointer;font-size:13px;border:1px solid rgba(255,255,255,0.02)}
+    .cat.active{background:linear-gradient(90deg,var(--accent),#ffb400);color:#081018;font-weight:700}
+    .search{margin:10px 0}
+    .search input{width:100%;padding:10px;border-radius:10px;border:0;background:rgba(255,255,255,0.04);color:white}
+    .layout{display:grid;grid-template-columns:1fr 360px;gap:20px}
+    .menu{background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);padding:12px;border-radius:var(--radius);box-shadow:0 8px 30px rgba(2,6,23,0.6)}
+    .items{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+    .card{background:rgba(255,255,255,0.02);padding:12px;border-radius:10px;display:flex;gap:12px;align-items:center;border:1px solid rgba(255,255,255,0.03)}
+    .thumb{width:80px;height:80px;border-radius:8px;background:linear-gradient(180deg,#111,#222);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:14px}
+    .info h3{margin:0;font-size:15px;color:#fff}
+    .info p{margin:6px 0 0;font-size:13px;color:var(--muted)}
+    .actions{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+    .price{font-weight:800;color:var(--accent)}
+    .btn{padding:8px 12px;border-radius:8px;border:0;background:var(--accent);color:#081018;cursor:pointer;font-weight:800}
+    aside.cart{position:sticky;top:24px;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);padding:16px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);height:fit-content}
+    .cart h2{margin:0 0 8px;font-size:18px;color:var(--accent)}
+    .cart-list{display:flex;flex-direction:column;gap:8px;max-height:300px;overflow:auto;padding-right:6px; margin-bottom: 12px;}
+    .cart-item{display:flex;justify-content:space-between;align-items:center;padding:8px;border-radius:8px;background:rgba(255,255,255,0.01)}
+    .qty{display:inline-flex;gap:6px;align-items:center}
+    .qty button{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted);border-radius:6px;padding:4px 8px;cursor:pointer}
+    .total{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-weight:800}
+    .wa-btn{display:block;text-align:center;margin-top:12px;padding:10px;border-radius:10px;text-decoration:none;font-weight:800;background:linear-gradient(90deg,#25D366,#128C7E);color:white;cursor:pointer;}
+
+    .checkout-form label { display: block; margin-top: 10px; font-size: 13px; color: var(--muted); }
+    .checkout-form input:not([type="radio"]), .checkout-form select {
+        width: 100%; padding: 8px; margin-top: 4px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.04); color: white; font-size: 14px;
+    }
+    .checkout-form select { 
+        height: 38px; 
+        background: rgba(255,255,255,0.08);
+        color: #fff;
+    }
+    .checkout-form select option {
+        background-color: var(--card);
+        color: #fff;
+    }
+    .checkout-form .form-row { display: flex; gap: 10px; }
+    .checkout-form .form-row > div { flex: 1; }
+    .checkout-form h3 { margin: 15px 0 5px; font-size: 16px; color: #fff; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 5px;}
+    .checkout-form .radio-group label { display: inline-block; margin-right: 15px; margin-top: 5px; color: #fff; }
+    .troco-field { display: none; margin-top: 10px;}
+    .required::after { content: " *"; color: var(--accent); }
+
+    @media (max-width:960px){.layout{grid-template-columns:1fr}.cats{position:relative;top:0}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo"><img src="1000125797-removebg-preview.png" alt="Katraka Lanches"></div>
+    <div class="brand">
+      <h1>Katraka Lanches</h1>
+      <p>Sanduíches • Porções • Bebidas — Peça pelo WhatsApp</p>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="cats" id="cats"></div>
+
+    <div class="search"><input id="search" placeholder="🔍 Procurar no cardápio..." oninput="render()"></div>
+
+    <div class="layout">
+      <main class="menu">
+        <div class="items" id="items"></div>
+      </main>
+
+      <aside class="cart">
+        <h2>🛒 Seu pedido</h2>
+        <div class="cart-list" id="cartList"><div style="color:var(--muted)">Carrinho vazio — adicione algo gostoso!</div></div>
+        <div class="total"><div>Total</div><div id="totalPrice">R$ 0,00</div></div>
+
+        <form id="checkoutForm" class="checkout-form" onsubmit="event.preventDefault(); validateAndSendToWhatsApp();">
+            <h3>Dados para Entrega</h3>
+            <label for="clientName" class="required">Seu Nome</label>
+            <input type="text" id="clientName" required placeholder="Ex: João da Silva">
+
+            <div class="form-row">
+                <div>
+                    <label for="clientAddress" class="required">Rua/Avenida</label>
+                    <input type="text" id="clientAddress" required placeholder="Ex: Rua das Flores">
+                </div>
+                <div>
+                    <label for="clientNumber" class="required">Número</label>
+                    <input type="text" id="clientNumber" required placeholder="Ex: 123">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div>
+                    <label for="clientCEP" class="required">CEP</label>
+                    <input type="text" id="clientCEP" required placeholder="Ex: 13000-000">
+                </div>
+                <div>
+                    <label for="clientPhone" class="required">Telefone</label>
+                    <input type="tel" id="clientPhone" required placeholder="Ex: (19) 99999-9999">
+                </div>
+            </div>
+
+            <label for="clientRef">Ponto de Referência (Opcional)</label>
+            <input type="text" id="clientRef" placeholder="Ex: Ao lado da farmácia">
+
+            <h3>Pagamento</h3>
+            <label for="paymentMethod" class="required">Forma de Pagamento</label>
+            <select id="paymentMethod" required onchange="toggleTroco()">
+                <option value="">Selecione...</option>
+                <option value="Dinheiro">Dinheiro</option>
+                <option value="PIX">PIX</option>
+                <option value="Cartão">Cartão (Crédito/Débito)</option>
+            </select>
+
+            <div id="trocoField" class="troco-field">
+                <label for="trocoPara" class="required">Troco para quanto?</label>
+                <input type="number" step="0.01" id="trocoPara" placeholder="Ex: 50.00">
+            </div>
+            
+            <div style="font-size:12px;color:var(--muted);margin-top:8px">WhatsApp: <strong>(19) 99423-3412</strong></div>
+            <button type="submit" id="whatsBtn" class="wa-btn">Finalizar no WhatsApp</button>
+        </form>
+      </aside>
+    </div>
+
+    <footer>© <span id="year"></span> Katraka Lanches — feito com ♥︎</footer>
+  </div>
+
+  <script>
+    const PHONE_NUMBER = '5519994233412';
+
+    const getNextOrderID = () => {
+        let id = localStorage.getItem('katraka_order_id');
+        if (!id) { id = 1000; } else { id = parseInt(id); }
+        localStorage.setItem('katraka_order_id', id + 1);
+        return id;
+    };
+
+   const MENU = [
+  // BOCA DE ANJO
+  {cat:'Boca de Anjo',code:'001',name:'Boca 001 (Burger)',price:66.00, desc:'Hambúrguer, queijo, presunto, ovo, milho, catupiry, salada + fritas'},
+  {cat:'Boca de Anjo',code:'002',name:'Boca 002 (Frango)',price:67.00, desc:'Frango, queijo, presunto, ovo, bacon, azeitona preta, catupiry, salada + fritas'},
+  {cat:'Boca de Anjo',code:'004',name:'Boca 004 (Contra)',price:69.00, desc:'Contra-filé, queijo, presunto, ovo, bacon, cebola, catupiry, salada + fritas'},
+  {cat:'Boca de Anjo',code:'005',name:'Boca 005 (Linguiça)',price:65.00, desc:'Linguiça, queijo, presunto, ovo, bacon, vinagrete, catupiry, salada + fritas'},
+
+  // Hambúrguer (90g)
+  {cat:'Hambúrguer (90g)',code:'101',name:'Hambúrguer e Queijo',price:24.00, desc:'Hambúrguer e queijo'},
+  {cat:'Hambúrguer (90g)',code:'102',name:'Hambúrguer, Queijo e Salada',price:25.00, desc:'Hambúrguer, queijo e salada'},
+  {cat:'Hambúrguer (90g)',code:'103',name:'Hambúrguer Completo 03',price:28.00, desc:'Hambúrguer, queijo, vinagrete e salada'},
+  {cat:'Hambúrguer (90g)',code:'104',name:'Hambúrguer Completo 04',price:31.50, desc:'Hambúrguer, queijo, bacon e salada'},
+  {cat:'Hambúrguer (90g)',code:'105',name:'Hambúrguer Completo 05',price:42.00, desc:'Hambúrguer, queijo, presunto, champignon, bacon, ovo e salada'},
+  {cat:'Hambúrguer (90g)',code:'106',name:'Hambúrguer Completo 06',price:39.50, desc:'Hambúrguer, queijo, presunto, bacon, ovo e salada'},
+  {cat:'Hambúrguer (90g)',code:'107',name:'Hambúrguer Completo 07',price:43.50, desc:'Hambúrguer, queijo, presunto, milho, catupiry e salada'},
+  {cat:'Hambúrguer (90g)',code:'108',name:'Hambúrguer Completo 08',price:37.00, desc:'Hambúrguer, queijo, presunto, ovo, cebola e salada'},
+  {cat:'Hambúrguer (90g)',code:'XTUDO',name:'X-Tudo',price:52.50, desc:'Hambúrguer, queijo, presunto, ovo, catupiry, azeitona preta, bacon, calabresa e salada'},
+  {cat:'Hambúrguer (90g)',code:'ESP',name:'Especial de Hamburguer',price:54.50, desc:'Dois hambúrgueres, queijo, presunto, ovo, catupiry, azeitona preta, bacon, calabresa e salada'},
+  {cat:'Hambúrguer (90g)',code:'ANI',name:'Animal',price:59.00, desc:'Três hambúrgueres, queijo, presunto, bacon, dois ovos, salada e calabresa'},
+
+  // Frango
+  {cat:'Frango',code:'109',name:'Frango e queijo',price:32.00, desc:'Frango e queijo'},
+  {cat:'Frango',code:'110',name:'Frango, queijo e salada',price:33.00, desc:'Frango, queijo e salada'},
+  {cat:'Frango',code:'111',name:'Frango Completo 11',price:41.50, desc:'Frango, queijo, presunto, ovo, calabresa e vinagrete'},
+  {cat:'Frango',code:'112',name:'Frango Completo 12',price:43.50, desc:'Frango, queijo, presunto, bacon, azeitona preta e salada'},
+  {cat:'Frango',code:'113',name:'Frango Completo 13',price:43.50, desc:'Frango, queijo, presunto, bacon, ovo e salada'},
+  {cat:'Frango',code:'114',name:'Frango Catupiry/Bacon',price:45.50, desc:'Frango, queijo, bacon, catupiry e salada'},
+  {cat:'Frango',code:'115',name:'Frango Catupiry/Milho',price:45.50, desc:'Frango, queijo, presunto, milho, catupiry e salada'},
+  {cat:'Frango',code:'116',name:'Frango Cebola',price:40.50, desc:'Frango, queijo, presunto, ovo, cebola e salada'},
+  {cat:'Frango',code:'ESP-F',name:'Especial de Frango',price:51.50, desc:'Dois filés de frango, queijo, presunto, ovo, cebola e salada'},
+
+  // Calabresa
+  {cat:'Calabresa',code:'117',name:'Calabresa, queijo e salada',price:30.50, desc:'Calabresa, queijo e salada'},
+  {cat:'Calabresa',code:'118',name:'Calabresa e cebola',price:30.50, desc:'Calabresa e cebola'},
+  {cat:'Calabresa',code:'119',name:'Calabresa Catupiry',price:41.50, desc:'Calabresa, presunto, milho, catupiry e salada'},
+  {cat:'Calabresa',code:'120',name:'Calabresa Completa 20',price:39.50, desc:'Calabresa, queijo, vinagrete, azeitona preta e salada'},
+  {cat:'Calabresa',code:'121',name:'Calabresa Mussarela/Ovo',price:38.00, desc:'Calabresa, mussarela, ovo e salada'},
+
+  // Mignon
+  {cat:'Mignon',code:'131',name:'Mignon e queijo',price:42.50, desc:'Mignon e queijo'},
+  {cat:'Mignon',code:'132',name:'Mignon, queijo e salada',price:45.50, desc:'Mignon, queijo e salada'},
+  {cat:'Mignon',code:'133',name:'Mignon Completo',price:57.50, desc:'Mignon, queijo, presunto, bacon, azeitona preta e salada'},
+  {cat:'Mignon',code:'134',name:'Mignon Catupiry',price:59.00, desc:'Mignon, queijo, presunto, milho, catupiry e salada'},
+  {cat:'Mignon',code:'136',name:'Mignon, queijo, bacon e salada',price:54.00, desc:'Mignon, queijo, bacon e salada'},
+
+  // Linguiça Caseira
+  {cat:'Linguiça Caseira',code:'146',name:'Linguiça Ovo',price:38.50, desc:'Linguiça, queijo e ovo'},
+  {cat:'Linguiça Caseira',code:'147',name:'Linguiça Tomate',price:38.50, desc:'Linguiça, queijo e tomate'},
+  {cat:'Linguiça Caseira',code:'148',name:'Linguiça Vinagrete',price:38.50, desc:'Linguiça, queijo e vinagrete'},
+  {cat:'Linguiça Caseira',code:'149',name:'Linguiça Ovo/Cebola',price:43.50, desc:'Linguiça, queijo, ovo e cebola'},
+  {cat:'Linguiça Caseira',code:'150',name:'Linguiça Azeitona Preta',price:43.50, desc:'Linguiça, ovo e azeitona preta'},
+  {cat:'Linguiça Caseira',code:'151',name:'Linguiça Bacon/Ovo',price:47.50, desc:'Linguiça, queijo, bacon, ovo e tomate'},
+  {cat:'Linguiça Caseira',code:'152',name:'Linguiça Bacon/Salada',price:43.50, desc:'Linguiça, queijo, bacon e salada'},
+  {cat:'Linguiça Caseira',code:'ESP-L',name:'Especial de Linguiça',price:57.50, desc:'Duas linguiças, queijo, presunto, ovo, bacon, cebola, azeitona preta e salada'},
+
+  // Pernil Suíno
+  {cat:'Pernil Suíno',code:'153',name:'Pernil e queijo',price:35.00, desc:'Pernil e queijo'},
+  {cat:'Pernil Suíno',code:'154',name:'Pernil Salada',price:36.00, desc:'Pernil, queijo e salada'},
+  {cat:'Pernil Suíno',code:'155',name:'Pernil Vinagrete',price:38.00, desc:'Pernil, queijo e vinagrete'},
+  {cat:'Pernil Suíno',code:'156',name:'Pernil Bacon',price:41.00, desc:'Pernil, queijo, bacon e salada'},
+  {cat:'Pernil Suíno',code:'157',name:'Pernil Completo 57',price:48.00, desc:'Pernil, queijo, presunto, azeitona preta, bacon e salada'},
+  {cat:'Pernil Suíno',code:'158',name:'Pernil Ovo/Bacon',price:47.00, desc:'Pernil, queijo, ovo, bacon e salada'},
+  {cat:'Pernil Suíno',code:'159',name:'Pernil Champignon',price:50.00, desc:'Pernil, queijo, presunto, bacon, champignon e salada'},
+  {cat:'Pernil Suíno',code:'160',name:'Pernil Catupiry',price:49.00, desc:'Pernil, queijo, presunto, catupiry e salada'},
+
+  // Pão Francês
+  {cat:'Pão Francês',code:'143',name:'Misto Frio',price:21.50, desc:'Queijo e presunto'},
+  {cat:'Pão Francês',code:'144',name:'Americano',price:27.00, desc:'Queijo, presunto, ovo e salada'},
+  {cat:'Pão Francês',code:'145',name:'Francês Completo',price:29.50, desc:'Queijo, presunto, ovo, bacon e tomate'},
+
+  // Vegetariano
+  {cat:'Vegetariano',code:'208',name:'Vegetariano Simples',price:38.00, desc:'Cebola roxa/branca, alface, tomate, milho, champignon, vinagrete, azeitona, queijos prato/mussarela'},
+  {cat:'Vegetariano',code:'209',name:'Vegetariano Catupiry',price:45.00, desc:'Cebola roxa/branca, alface, tomate, milho, champignon, vinagrete, azeitona, queijos prato/mussarela e catupiry'},
+
+  // Lanche no Prato
+  {cat:'Lanche no Prato',code:'161',name:'Prato Calabresa',price:61.00, desc:'Calabresa, queijo, presunto, bacon, azeitona preta, salada, ovo e fritas'},
+  {cat:'Lanche no Prato',code:'162',name:'Prato Contra-filé',price:69.50, desc:'Contra-filé, queijo, presunto, bacon, azeitona preta, salada, ovo e fritas'},
+  {cat:'Lanche no Prato',code:'163',name:'Prato Frango',price:67.50, desc:'Frango, queijo, presunto, bacon, azeitona preta, salada, ovo e fritas'},
+  {cat:'Lanche no Prato',code:'164',name:'Prato Dois Burgers',price:67.50, desc:'Dois hambúrgueres, queijo, presunto, bacon, azeitona preta, salada, ovo e fritas'},
+  {cat:'Lanche no Prato',code:'165',name:'Prato Linguiça',price:67.50, desc:'Linguiça, queijo, presunto, bacon, azeitona preta, salada e fritas'},
+  {cat:'Lanche no Prato',code:'166',name:'Prato Pernil',price:67.50, desc:'Pernil, queijo, presunto, bacon, azeitona preta, salada, ovo e fritas'},
+
+  // Porções (Meia/Inteira)
+  {cat:'Porções',code:'211-M',name:'Fritas (Meia)',price:30.00, desc:'Acompanha Ketchup/Maionese'},
+  {cat:'Porções',code:'211-I',name:'Fritas (Inteira)',price:37.50, desc:'Acompanha Ketchup/Maionese'},
+  {cat:'Porções',code:'216-M',name:'Fritas c/ Mussarela (Meia)',price:36.75, desc:'Batata frita coberta com mussarela'},
+  {cat:'Porções',code:'216-I',name:'Fritas c/ Mussarela (Inteira)',price:46.50, desc:'Batata frita coberta com mussarela'},
+  {cat:'Porções',code:'217-M',name:'Fritas c/ Bacon (Meia)',price:36.75, desc:'Batata frita coberta com bacon crocante'},
+  {cat:'Porções',code:'217-I',name:'Fritas c/ Bacon (Inteira)',price:46.50, desc:'Batata frita coberta com bacon crocante'},
+  {cat:'Porções',code:'212-M',name:'Fritas c/ Cheddar (Meia)',price:36.75, desc:'Batata frita coberta com queijo cheddar cremoso'},
+  {cat:'Porções',code:'212-I',name:'Fritas c/ Cheddar (Inteira)',price:46.75, desc:'Batata frita coberta com queijo cheddar cremoso'},
+  {cat:'Porções',code:'213-M',name:'Fritas Cheddar/Bacon (M)',price:38.50, desc:'Batata frita coberta com cheddar cremoso e bacon'},
+  {cat:'Porções',code:'213-I',name:'Fritas Cheddar/Bacon (I)',price:51.50, desc:'Batata frita coberta com cheddar cremoso e bacon'},
+  {cat:'Porções',code:'215-M',name:'Calabresa c/ Fritas (Meia)',price:47.50, desc:'Tiras de calabresa frita acompanhadas de batata frita'},
+  {cat:'Porções',code:'215-I',name:'Calabresa c/ Fritas (Inteira)',price:60.50, desc:'Tiras de calabresa frita acompanhadas de batata frita'},
+  {cat:'Porções',code:'219-M',name:'Filé de Tilápia (Meia)',price:49.00, desc:'Pedaços de filé de tilápia empanados'},
+  {cat:'Porções',code:'219-I',name:'Filé de Tilápia (Inteira)',price:92.50, desc:'Pedaços de filé de tilápia empanados'},
+  {cat:'Porções',code:'221-M',name:'Mandioca (Meia)',price:30.00, desc:'Acompanha Ketchup/Maionese'},
+  {cat:'Porções',code:'221-I',name:'Mandioca (Inteira)',price:37.50, desc:'Acompanha Ketchup/Maionese'},
+  {cat:'Porções',code:'223-M',name:'Contra Filé c/ Fritas (Meia)',price:65.00, desc:'Tiras de contra filé acebolado acompanhadas de fritas'},
+  {cat:'Porções',code:'223-I',name:'Contra Filé c/ Fritas (Inteira)',price:72.50, desc:'Tiras de contra filé acebolado acompanhadas de fritas'},
+  {cat:'Porções',code:'224-M',name:'Linguiça c/ fritas (Meia)',price:60.00, desc:'Tiras de linguiça acebolada acompanhadas de fritas'},
+  {cat:'Porções',code:'224-I',name:'Linguiça c/ fritas (Inteira)',price:72.50, desc:'Tiras de linguiça acebolada acompanhadas de fritas'},
+  {cat:'Porções',code:'225-M',name:'Filé de Frango c/ fritas (Meia)',price:60.50, desc:'Tiras de filé de frango acebolado acompanhadas de fritas'},
+  {cat:'Porções',code:'225-I',name:'Filé de Frango c/ fritas (Inteira)',price:72.50, desc:'Tiras de filé de frango acebolado acompanhadas de fritas'},
+  {cat:'Porções',code:'226',name:'Frango Passarinho c/ fritas (I)',price:62.00, desc:'Tiras de frango a passarinho crocante acompanhadas de fritas'},
+
+  // Rechaud
+  {cat:'Rechaud',code:'006',name:'Rechaud Contra/Calabresa',price:120.00, desc:'Calabresa, contrafilé acebolado, batata, mandioca, vinagrete e pimenta biquinho'},
+  {cat:'Rechaud',code:'007',name:'Rechaud Frango/Calabresa',price:120.00, desc:'Filé de frango, calabresa acebolada, batata, mandioca, vinagrete e pimenta biquinho'},
+  {cat:'Rechaud',code:'008',name:'Rechaud Contra/Frango',price:120.00, desc:'Contrafilé acebolado, frango a passarinho, batata, mandioca, vinagrete e pimenta biquinho'},
+  {cat:'Rechaud',code:'009',name:'Rechaud Frango/Linguiça',price:120.00, desc:'Frango a passarinho, linguiça de bragança, batata, mandioca, vinagrete e pimenta biquinho'},
+
+  // Lanche Gourmet
+  {cat:'Lanche Gourmet',code:'200',name:'Gourmet Queijo Prato',price:36.50, desc:'Burger gourmet, queijo prato e molho'},
+  {cat:'Lanche Gourmet',code:'201',name:'Gourmet Salada Roxo',price:39.50, desc:'Burger gourmet, queijo prato, alface, tomate, cebola roxa e molho'},
+  {cat:'Lanche Gourmet',code:'202',name:'Gourmet Bacon Roxo',price:43.50, desc:'Burger gourmet, queijo prato, bacon, alface, tomate, cebola roxa e molho'},
+  {cat:'Lanche Gourmet',code:'203',name:'Dois Burgers Gourmet',price:48.50, desc:'Dois Burgers gourmet, queijo prato, bacon e molho'},
+
+  // Gourmet Artesanal
+  {cat:'Gourmet Artesanal',code:'285',name:'Artesanal Elma Chips',price:49.90, desc:'Hambúrguer artesanal, queijo preto, bacon, cheddar, cebola roxa, salada e batata elma chips'},
+  {cat:'Gourmet Artesanal',code:'286',name:'Artesanal Doritos',price:54.00, desc:'Dois hambúrgueres artesanais, bacon, doritos, cebola roxa e catupiry'},
+  {cat:'Gourmet Artesanal',code:'287',name:'Artesanal Onion/Bacon',price:54.00, desc:'Dois hambúrgueres artesanais, cebola empanada, bacon, cheddar e cebola roxa'},
+  {cat:'Gourmet Artesanal',code:'288',name:'Artesanal Picles/Bacon',price:52.90, desc:'Hambúrguer artesanal, picles, bacon, cebola roxa, catupiry e salada'},
+  {cat:'Gourmet Artesanal',code:'289',name:'Artesanal Onion/Cheddar',price:52.90, desc:'Hambúrguer artesanal, queijo prato, cebola empanada e cheddar'},
+  {cat:'Gourmet Artesanal',code:'290',name:'Double Burger Big Jack',price:53.90, desc:'Dois hambúrgueres artesanais, queijo prato, alface, cebola, picles e molho big jack'},
+  {cat:'Gourmet Artesanal',code:'291',name:'Double Burger Catupiry',price:54.00, desc:'Dois hambúrgueres artesanais, queijo prato, presunto, ovo, salada, milho e catupiry'},
+  {cat:'Gourmet Artesanal',code:'292',name:'Double Burger Big Jack Bacon',price:47.90, desc:'Hambúrguer artesanais, queijo prato, bacon, molho big jack e picles'},
+
+  // Sucos (Naturais/Copo 500ml)
+  {cat:'Sucos (Naturais/Copo 500ml)',code:'228',name:'Suco de Laranja (Natural)',price:17.00, desc:'Suco natural de laranja'},
+  {cat:'Sucos (Naturais/Copo 500ml)',code:'229',name:'Suco de Abacaxi',price:17.00, desc:'Suco natural de abacaxi'},
+  {cat:'Sucos (Naturais/Copo 500ml)',code:'230',name:'Suco de Acerola',price:17.00, desc:'Suco natural de acerola'},
+  {cat:'Sucos (Naturais/Copo 500ml)',code:'231',name:'Suco de Limão',price:17.00, desc:'Suco natural de limão'},
+  {cat:'Sucos (Naturais/Copo 500ml)',code:'232',name:'Suco de Morango',price:17.00, desc:'Suco natural de morango'},
+  {cat:'Sucos (Naturais/Copo 500ml)',code:'233',name:'Suco de Maracujá',price:17.00, desc:'Suco natural de maracujá'},
+  {cat:'Sucos (Naturais/Copo 500ml)',code:'242',name:'Suco de Melancia',price:17.00, desc:'Suco natural de melancia'},
+
+  // Sucos Especiais
+  {cat:'Sucos Especiais',code:'244',name:'Laranja c/ Abacaxi',price:19.50, desc:'Copo 500ml'},
+  {cat:'Sucos Especiais',code:'245',name:'Laranja c/ Acerola',price:19.50, desc:'Copo 500ml'},
+  {cat:'Sucos Especiais',code:'246',name:'Laranja c/ Cenoura',price:19.50, desc:'Copo 500ml'},
+  {cat:'Sucos Especiais',code:'248',name:'Laranja c/ Morango',price:19.50, desc:'Copo 500ml'},
+  {cat:'Sucos Especiais',code:'249',name:'Abacaxi c/ Hortelã',price:21.50, desc:'Copo 500ml'},
+  {cat:'Sucos Especiais',code:'250',name:'G.A.L.',price:21.50, desc:'Guaraná, Abacaxi e Leite Condensado - Copo 500ml'},
+  {cat:'Sucos Especiais',code:'251',name:'Limonada Suíça',price:21.50, desc:'Batida com leite condensado - Copo 500ml'},
+  {cat:'Sucos Especiais',code:'252',name:'Vitamina de Morango',price:21.50, desc:'Batida com leite - Copo 500ml'},
+  {cat:'Sucos Especiais',code:'253',name:'Lara Creme',price:27.00, desc:'Suco de laranja batido com sorvete de creme - Copo 500ml'},
+
+  // Sobremesa
+  {cat:'Sobremesa',code:'254',name:'Milk-Shake 500ml',price:30.00, desc:'Creme, Morango ou Chocolate'},
+  {cat:'Sobremesa',code:'255',name:'Sundae',price:30.00, desc:'Creme, Morango ou Chocolate'},
+  {cat:'Sobremesa',code:'256',name:'Petit Gâteau',price:30.00, desc:'Creme, Morango ou Chocolate'},
+  {cat:'Sobremesa',code:'257',name:'Bombom Sonho de Valsa',price:5.00, desc:'Unidade'},
+
+  // Drinks
+  {cat:'Drinks',code:'258',name:'Caipirinha Pinga/Limão',price:23.00, desc:'Pinga, morango, maracujá, abacaxi e limão'},
+  {cat:'Drinks',code:'259',name:'Drinks Vodka/Sabores',price:25.00, desc:'Vodka, morango, maracujá, abacaxi e limão'},
+  {cat:'Drinks',code:'260',name:'Campari (Dose)',price:19.00, desc:'Dose individual de Campari'},
+  {cat:'Drinks',code:'261',name:'Martini (Dose)',price:19.00, desc:'Dose individual de Martini'},
+  {cat:'Drinks',code:'VIN',name:'Taça de Vinho',price:19.00, desc:'Tinto suave ou seco'},
+
+  // Adicionais
+  {cat:'Adicionais',code:'AD0',name:'Adicional de Cebola',price:6.00, desc:'Cebola roxa fatiada'},
+  {cat:'Adicionais',code:'AD1',name:'Adicional de Salada',price:6.00, desc:'Alface e Tomate frescos'},
+  {cat:'Adicionais',code:'AD2',name:'Adicional de Catupiry',price:11.00, desc:'Extra de Catupiry Original'},
+  {cat:'Adicionais',code:'AD3',name:'Adicional de Bacon',price:9.00, desc:'Extra de bacon em tiras'},
+  {cat:'Adicionais',code:'AD4',name:'Adicional Champignon',price:9.00, desc:'Extra de cogumelos fatiados'},
+  {cat:'Adicionais',code:'AD5',name:'Adicional Presunto',price:7.00, desc:'Tira extra de presunto'},
+  {cat:'Adicionais',code:'AD6',name:'Adicional Queijo',price:7.00, desc:'Tira extra de mussarela fatiada'},
+  {cat:'Adicionais',code:'AD7',name:'Adicional Frango',price:13.00, desc:'Carne extra de frango desfiado'},
+  {cat:'Adicionais',code:'AD8',name:'Adicional Cheddar',price:10.00, desc:'Extra de queijo cheddar cremoso'},
+  {cat:'Adicionais',code:'AD9',name:'Adicional Pão Francês',price:5.00, desc:'Unidade adicional de pão'},
+  {cat:'Adicionais',code:'AD10',name:'Adicional de Milho',price:5.00, desc:'Porção extra de milho verde'},
+  {cat:'Adicionais',code:'AD11',name:'Adicional de Ovo',price:3.50, desc:'Um ovo frito extra'},
+  {cat:'Adicionais',code:'AD12',name:'Adicional Vinagrete',price:5.00, desc:'Extra de vinagrete fatiado'},
+  {cat:'Adicionais',code:'AD13',name:'Adicional Hambúrguer',price:8.00, desc:'Carne extra de hambúrguer (90g)'},
+  {cat:'Adicionais',code:'AD14',name:'Adicional Filé Mignon',price:21.00, desc:'Carne extra de filé mignon'},
+  {cat:'Adicionais',code:'AD15',name:'Adicional Calabresa',price:9.00, desc:'Extra de calabresa fatiada'},
+  {cat:'Adicionais',code:'AD16',name:'Adicional de Pernil',price:14.00, desc:'Carne extra de pernil desfiado'},
+  {cat:'Adicionais',code:'AD17',name:'Adicional Linguiça',price:14.00, desc:'Tira extra de linguiça frita'},
+  {cat:'Adicionais',code:'AD18',name:'Adicional de Azeitona',price:10.00, desc:'Extra de azeitona preta fatiada'},
+  {cat:'Adicionais',code:'AD19',name:'Adic. Burguer Artesanal',price:13.00, desc:'Carne artesanal extra (150g)'},
+  // Bebidas
+  {cat:'Bebidas',code:'238',name:'Cerveja Lata (Skol ou Brahma)',price:8.00, desc:'Lata 350ml'},
+  {cat:'Bebidas',code:'240',name:'Refrigerante Lata',price:8.00, desc:'Lata 350ml'},
+  {cat:'Bebidas',code:'241',name:'Refrigerante 600ml',price:12.00, desc:'Garrafa 600ml'},
+  {cat:'Bebidas',code:'242',name:'Água sem gás 510ml',price:4.50, desc:'Garrafa 510ml'},
+  {cat:'Bebidas',code:'243',name:'Água com gás 510ml',price:5.00, desc:'Garrafa 510ml'},
+  {cat:'Bebidas',code:'281',name:'Heineken 600ml',price:18.00, desc:'Garrafa 600ml'},
+  {cat:'Bebidas',code:'282',name:'Brahma 600ml',price:14.00, desc:'Garrafa 600ml'},
+  {cat:'Bebidas',code:'283',name:'Império 600ml',price:14.00, desc:'Garrafa 600ml'},
+  {cat:'Bebidas',code:'284',name:'Original 600ml',price:16.00, desc:'Garrafa 600ml'},
+  {cat:'Bebidas',code:'COKS',name:'Coca KS',price:7.50, desc:'Garrafa KS'}
+];
+
+    function money(v){ return v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
+
+    function toggleTroco() {
+        const paymentMethod = document.getElementById('paymentMethod').value;
+        const trocoField = document.getElementById('trocoField');
+        if (paymentMethod === 'Dinheiro') {
+            trocoField.style.display = 'block';
+            document.getElementById('trocoPara').setAttribute('required', 'required');
+        } else {
+            trocoField.style.display = 'none';
+            document.getElementById('trocoPara').removeAttribute('required');
+        }
+    }
+
+    const cats = [];
+    MENU.forEach(m => { if (!cats.includes(m.cat)) cats.push(m.cat); });
+
+    const catsWrap = document.getElementById('cats');
+    let activeCat = cats[0] || null;
+    cats.forEach((c,i) => {
+      const b = document.createElement('div');
+      b.className = 'cat' + (i===0 ? ' active' : '');
+      b.innerText = c;
+      b.onclick = () => { activeCat = c; document.querySelectorAll('.cat').forEach(x=>x.classList.remove('active')); b.classList.add('active'); render(); window.scrollTo({top:120,behavior:'smooth'}); };
+      catsWrap.appendChild(b);
+    });
+
+    const itemsWrap = document.getElementById('items');
+    function render(){
+      const q = document.getElementById('search').value.trim().toLowerCase();
+      itemsWrap.innerHTML = '';
+      
+      // Filtra os itens com base na categoria ativa e na pesquisa [cite: 57]
+      MENU.filter(it => (it.cat === activeCat) && (q === '' || it.name.toLowerCase().includes(q)))
+      .forEach(it => {
+        const el = document.createElement('div');
+        el.className = 'card';
+        // Ajustamos o HTML para incluir a descrição (it.desc) e formatar melhor o título 
+        el.innerHTML = `
+          <div class="thumb">${it.code ? it.code : it.cat[0]}</div>
+          <div class="info">
+            <h3>${it.name}${it.code ? ' — #' + it.code : ''}</h3>
+            <p>${it.desc ? it.desc : ''}</p> 
+          </div>
+          <div class="actions">
+            <div class="price">${money(it.price)}</div>
+            <button class="btn" onclick='addToCart("${it.code}", "${it.name}", ${it.price})'>Adicionar</button>
+          </div>
+        `;
+        itemsWrap.appendChild(el);
+      });
+    }
+
+
+    render();
+
+    let cart = [];
+    let totalValue = 0;
+
+    function addToCart(code,name,price){
+      const idx = cart.findIndex(i=>i.code===code && i.name===name); 
+      if (idx >= 0) cart[idx].q += 1;
+      else cart.push({code, name, price, q:1});
+      updateCart();
+    }
+
+    function changeQty(idx,delta){
+      cart[idx].q += delta;
+      if (cart[idx].q <= 0) cart.splice(idx,1);
+      updateCart();
+    }
+    
+    function updateCart(){
+      const wrap = document.getElementById('cartList');
+      wrap.innerHTML = '';
+      if (cart.length === 0) {
+        wrap.innerHTML = '<div style="color:var(--muted)">Carrinho vazio — adicione algo gostoso!</div>';
+        document.getElementById('totalPrice').innerText = money(0);
+        return;
+      }
+      totalValue = 0;
+      cart.forEach((it, idx) => {
+        totalValue += it.price * it.q;
+        const div = document.createElement('div');
+        div.className = 'cart-item';
+        div.innerHTML = `
+          <div style="flex:1"><strong>${it.q}x ${it.name}</strong></div>
+          <div class="qty">
+            <button onclick="changeQty(${idx},-1)">-</button>
+            <div style="min-width:28px;text-align:center">${it.q}</div>
+            <button onclick="changeQty(${idx},1)">+</button>
+          </div>
+        `;
+        wrap.appendChild(div);
+      });
+      document.getElementById('totalPrice').innerText = money(totalValue);
+    }
+
+    function validateAndSendToWhatsApp(){
+        if (cart.length === 0) { alert("Carrinho vazio!"); return; }
+        const form = document.getElementById('checkoutForm');
+        if (!form.reportValidity()) return;
+
+        const payment = document.getElementById('paymentMethod').value;
+        const trocoPara = document.getElementById('trocoPara').value;
+
+        if (payment === 'Dinheiro' && (parseFloat(trocoPara) < totalValue)) {
+            alert("O valor para troco deve ser maior que o total!");
+            return;
+        }
+        
+        const currentOrderID = getNextOrderID();
+        const name = document.getElementById('clientName').value;
+        const address = document.getElementById('clientAddress').value;
+        const number = document.getElementById('clientNumber').value;
+        const phone = document.getElementById('clientPhone').value;
+        
+        const lines = cart.map(i => `*${i.q}x* (${i.code}) ${i.name} - ${money(i.price*i.q)}`);
+
+        const orderText = `*PEDIDO #${currentOrderID} - Katraka Lanches*
+\n*ITENS:*
+${lines.join('\n')}
+\n*TOTAL:* ${money(totalValue)}
+\n*CLIENTE:* ${name}
+*ENDEREÇO:* ${address}, ${number}
+*PAGAMENTO:* ${payment} ${trocoPara ? '(Troco para ' + money(parseFloat(trocoPara)) + ')' : ''}`;
+
+        window.open(`https://wa.me/${PHONE_NUMBER}?text=${encodeURIComponent(orderText)}`, '_blank');
+    }
+
+    document.getElementById('year').innerText = new Date().getFullYear();
+    window.addToCart = addToCart;
+    window.changeQty = changeQty;
+    window.render = render;
+    window.updateCart = updateCart;
+    window.validateAndSendToWhatsApp = validateAndSendToWhatsApp;
+    window.toggleTroco = toggleTroco;
+  </script>
+</body>
+</html>
